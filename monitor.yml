@@ -1,0 +1,22 @@
+name: Monitor de Servidor
+on:
+  schedule:
+    # Se ejecuta cada 15 minutos
+    - cron: '*/15 * * * *'
+  workflow_dispatch: # Para ejecutarlo manualmente si quieres probar
+
+jobs:
+  check-service:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Revisar si mi servidor responde
+        id: check
+        # Intenta conectar. Si falla, el paso da error.
+        run: curl --fail https://luqueargentina.com.ar
+
+      - name: Notificar por Telegram si falla
+        if: failure() # Solo se ejecuta si el paso anterior falló
+        run: |
+          curl -s -X POST https://api.telegram.org/bot${{ 8543136937:AAGWB0CAl-wV9MK_PtXEa5xQctYYPzg2dac }}/sendMessage \
+          -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
+          -d text="🚨 ALERTA: Tu servidor casero no responde."
