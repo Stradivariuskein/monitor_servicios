@@ -17,6 +17,6 @@ jobs:
       - name: Notificar por Telegram si falla
         if: failure() # Solo se ejecuta si el paso anterior falló
         run: |
-          curl -s -X POST https://api.telegram.org/bot${{ 8543136937:AAGWB0CAl-wV9MK_PtXEa5xQctYYPzg2dac }}/sendMessage \
-          -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
+          curl -s -X POST https://api.telegram.org/bot8543136937:AAGWB0CAl-wV9MK_PtXEa5xQctYYPzg2dac/sendMessage \
+          -d chat_id=7188145841 \
           -d text="🚨 ALERTA: Tu servidor casero no responde."
