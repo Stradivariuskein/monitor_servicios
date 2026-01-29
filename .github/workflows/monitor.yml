@@ -10,12 +10,37 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Revisar si mi servidor responde
-        run: curl --fail https://luqueargentina.com.ar
+      - name: Checkout del repo
+        uses: actions/checkout@v4
+
+      - name: Revisar URLs
+        id: check
+        run: |
+          echo "Chequeando URLs..."
+          FAILED_URLS=""
+
+          while IFS= read -r url || [ -n "$url" ]; do
+            # Saltar líneas vacías o comentarios
+            [ -z "$url" ] && continue
+            [[ "$url" =~ ^# ]] && continue
+
+            echo "→ Probando $url"
+            if ! curl --connect-timeout 5 --max-time 10 --fail "$url"; then
+              FAILED_URLS="$FAILED_URLS\n❌ $url"
+            fi
+          done < urls.txt
+
+          if [ -n "$FAILED_URLS" ]; then
+            echo -e "Fallaron:$FAILED_URLS"
+            echo "FAILED_URLS<<EOF" >> $GITHUB_ENV
+            echo -e "$FAILED_URLS" >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+            exit 1
+          fi
 
       - name: Notificar por Telegram si falla
         if: failure()
         run: |
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
             -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
-            -d text="🚨 ALERTA: Tu servidor no responde."
+            -d text="🚨 ALERTA: Las siguientes URLs no responden:${FAILED_URLS}"
